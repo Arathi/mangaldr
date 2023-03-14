@@ -1,4 +1,4 @@
-package com.undsf
+package com.undsf.mangaldr
 
 import com.undsf.mangaldr.plugins.configureRouting
 import io.ktor.client.request.*

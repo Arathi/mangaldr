@@ -7,6 +7,8 @@ import io.ktor.server.response.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 import org.slf4j.LoggerFactory
 
 typealias Aria2Client = com.undsf.aria2.Client
@@ -44,6 +46,36 @@ fun Application.configureRouting() {
                     group.proxy
                 )
                 logger.info("下载任务创建成功，gid为$gid")
+            }
+        }
+
+        webSocket("/connect") {
+            send("""please input `/start` to start session.""")
+            for (frame in incoming) {
+                if (frame !is Frame.Text) {
+                    continue
+                }
+
+                val input = frame.readText().trim()
+                when {
+                    input == "/start" -> {
+                        send("started.")
+                    }
+                    input == "/end" -> {
+                        send("terminated.")
+                        close(
+                            CloseReason(
+                                CloseReason.Codes.NORMAL, "Bye."
+                            )
+                        )
+                    }
+                    input.startsWith("/") -> {
+                        send("no command $input")
+                    }
+                    else -> {
+                        send("reply: $input")
+                    }
+                }
             }
         }
     }
