@@ -1,9 +1,7 @@
 package com.undsf.aria2
 
 import com.google.gson.reflect.TypeToken
-import com.undsf.aria2.messages.Aria2Request
-import com.undsf.aria2.messages.GetVersionResult
-import com.undsf.aria2.messages.ParamList
+import com.undsf.aria2.messages.*
 import com.undsf.jsonrpc.messages.Response
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -14,6 +12,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.gson.*
 import org.slf4j.LoggerFactory
+import java.lang.reflect.Type
 
 typealias JsonRpcClient = com.undsf.jsonrpc.Client
 
@@ -27,6 +26,11 @@ class Client(
         if (token != null) "token:$token"
         else null
 
+    suspend fun <R> jsonrpc(method: String, params: ParamList? = null, respType: TypeToken<R>) : R {
+        val respJson = jsonrpcAsText(baseUrl, method, params)
+        return gson.fromJson(respJson, respType)
+    }
+
     suspend fun addUri(
         uris: List<String>,
         dir: String? = null,
@@ -35,39 +39,63 @@ class Client(
         position: UInt? = null
     ): String? {
         val method = "aria2.addUri"
-
-        val options = mutableMapOf<String, String>()
-        if (dir != null) {
-            options["dir"] = dir
-        }
-        if (fileName != null) {
-            options["out"] = fileName
-        }
-        if (proxy != null) {
-            options["all-proxy"] = proxy
-        }
-
-        val params = ParamList.of(
-            secret,
-            uris,
-            options,
-            position
+        val options = OptionsBuilder(
+            dir = dir,
+            fileName = fileName,
+            proxy = proxy
+        ).build()
+        val resp: Response<String, Void> = jsonrpc(
+            method,
+            ParamList.of(secret, uris, options, position),
+            stringResultResponseType
         )
-
-        val respType = object : TypeToken<Response<String, Void>>(){}
-        val respJson = jsonrpcAsText(baseUrl, method, params)
-        val resp: Response<String, Void> = gson.fromJson(respJson, respType)
         return resp.result
     }
 
-    suspend fun getVersion() : String? {
-        val method = "aria2.getVersion"
-        logger.info("获取aria2版本信息（$method）")
-        val params = ParamList(secret)
+    suspend fun remove(gid: String) : String? {
+        val method = "aria2.remove"
+        val resp = jsonrpc(
+            method,
+            ParamList.of(secret, gid),
+            stringResultResponseType
+        )
+        return resp.result
+    }
 
-        val respType = object : TypeToken<Response<GetVersionResult, Void>>(){}
-        val respJson = jsonrpcAsText(baseUrl, method, params)
-        val resp: Response<GetVersionResult, Void> = gson.fromJson(respJson, respType)
-        return resp.result?.version
+    suspend fun tellStatus(gid: String) : Status? {
+        val method = "aria2.tellStatus"
+        val resp = jsonrpc(
+            method,
+            ParamList.of(secret, gid, fieldNames),
+            statusResultResponseType
+        )
+        return resp.result
+    }
+
+    suspend fun tellTasks() {
+
+    }
+
+    suspend fun getVersion() : String {
+        val method = "aria2.getVersion"
+        val resp: Response<GetVersionResult, Void> = jsonrpc(
+            method,
+            ParamList(secret),
+            getVersionResultRequestType
+        )
+        return resp.result?.version!!
+    }
+
+    companion object {
+        val getVersionResultRequestType = object : TypeToken<Response<GetVersionResult, Void>>(){}
+        val stringResultResponseType = object : TypeToken<Response<String, Void>>(){}
+        val statusResultResponseType = object : TypeToken<Response<Status, Void>>(){}
+
+        val fieldNames = listOf(
+            "gid",  // aria2任务ID
+            "status", // 状态码
+            "totalLength", // 总长度
+            "completedLength" // 已下载长度
+        )
     }
 }

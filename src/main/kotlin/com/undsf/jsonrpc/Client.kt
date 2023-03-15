@@ -26,15 +26,7 @@ open class Client {
 
     val gson = Gson()
 
-    suspend fun <P, R, ED> jsonrpc(url: String, method: String, params: P?) : Response<R, ED> {
-        val respJson = jsonrpcAsText(url, method, params)
-        val respType = object : TypeToken<Response<R, ED>>() {}
-        val resp: Response<R, ED> = gson.fromJson(respJson, respType)
-
-        return resp
-    }
-
-    suspend fun jsonrpcAsText(url: String, method: String, params: Any?) : String {
+    suspend fun jsonrpcAsText(url: String, method: String, params: Any? = null) : String {
         val req: Request<Any> = Request(
             method = method,
             params = params

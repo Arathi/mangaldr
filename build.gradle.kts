@@ -34,6 +34,7 @@ dependencies {
 
     // websocket-server
     implementation("io.ktor:ktor-server-websockets:$ktor_version")
+    implementation("io.ktor:ktor-server-websockets-jvm:$kotlin_version")
 
     // http-client
     implementation("io.ktor:ktor-client-core:$ktor_version")
@@ -49,11 +50,11 @@ dependencies {
 
     // dependency injection
     implementation("io.insert-koin:koin-ktor:$koin_ktor_version")
-    implementation("org.kodein.di:kodein-di-jvm:7.17.0")
+    implementation("org.kodein.di:kodein-di-jvm:$kodein_di_version")
 
     // database
     implementation("org.ktorm:ktorm-core:$ktorm_version")
-    implementation("io.ktor:ktor-server-websockets-jvm:2.2.4")
+    implementation("io.ktor:ktor-server-default-headers-jvm:2.2.4")
 
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")

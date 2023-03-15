@@ -1,6 +1,5 @@
 package com.undsf.mangaldr.models
 
-// @Serializable
 data class TaskGroup(
     /**
      * 任务组ID

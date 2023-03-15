@@ -19,7 +19,7 @@ class Response<R,ED>(
     /**
      * ID，与请求的一致
      */
-    var id: String
+    var id: Any
 ) {
     constructor(result: R, id: String) : this(
         jsonrpc = Request.VERSION_2_0,

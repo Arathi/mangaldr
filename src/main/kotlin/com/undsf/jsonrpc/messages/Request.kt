@@ -21,7 +21,7 @@ open class Request<P>(
     /**
      * ID
      */
-    var id: String = UUID.randomUUID().toString()
+    var id: Any = UUID.randomUUID().toString()
 ) {
     companion object {
         const val VERSION_2_0 = "2.0"
